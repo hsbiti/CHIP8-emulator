@@ -1,7 +1,8 @@
 CC=g++
-CFLAGS=-Wall -g #-Wextra -Werror
+CFLAGS=-Wall -g -Wno-deprecated #-Wextra -Werror
 IFLAGS=-Iinclude
 OPATH=obj/
+GL=-framework OpenGL -framework GLUT
 
 vpath %.cpp src/
 vpath %.o obj/
@@ -9,14 +10,14 @@ vpath %.h include/
 
 
 main: main.o |bin
-	$(CC) $(CFLAGS) -o main $(OPATH)main.o
+	$(CC) $(CFLAGS) -o main $(OPATH)main.o $(GL)
 	mv main bin/
 
 main.o: main.cpp Chip8.cpp Chip8.h
 Chip8.o: Chip8.cpp Chip8.h
 
 %.o : |obj
-	$(CC) $(CFLAGS) -c $< $(IFLAGS)
+	$(CC) $(CFLAGS) -c $< $(IFLAGS) $(GL)
 	mv $@ $(OPATH)
 
 
