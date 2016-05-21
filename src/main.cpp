@@ -10,7 +10,9 @@
 #define WIDTH 32
 #define HEIGHT 64
 
-GLvoid InitGL(GLvoid)
+//Chip8 myChip8;
+
+GLvoid InitGL()
 {
     glShadeModel(GL_SMOOTH);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -20,7 +22,7 @@ GLvoid InitGL(GLvoid)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
-GLvoid DrawGLScene(GLvoid)
+GLvoid DrawGLScene()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();

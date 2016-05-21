@@ -84,7 +84,24 @@ void Chip8::emulateCycle()
     {
 
         case 0x0000: // Calls RCA 1802 program at address NNN. Not necessary for most ROMs.
+            switch(opcode & 0x000F)
+            {
+                case 0x0000: // 0x00E0: Clears the screen
+                    for(int i = 0; i < 2048; ++i)
+                        gfx[i] = 0x0;
+                    drawFlag = true;
+                    pc += 2;
+                    break;
 
+                case 0x000E: // 0x00EE: Returns from subroutine
+                    --sp;			// 16 levels of stack, decrease stack pointer to prevent overwrite
+                    pc = stack[sp];	// Put the stored return address from the stack back into the program counter
+                    pc += 2;		// Don't forget to increase the program counter!
+                    break;
+
+                default:
+                    printf ("Unknown opcode [0x0000]: 0x%X\n", opcode);
+            }
             break;
 
         case 0x1000: // Jump à l'adresse NNN de 0xNNN

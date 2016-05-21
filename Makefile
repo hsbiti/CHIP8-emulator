@@ -1,8 +1,16 @@
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+	  GL=-framework OpenGL -framework GLUT
+else
+	GL=-lglut -lGL -lGLU
+endif
+
+
 CC=g++
 CFLAGS=-Wall -g -Wno-deprecated #-Wextra -Werror
 IFLAGS=-Iinclude
 OPATH=obj/
-GL=-framework OpenGL -framework GLUT
+#GL=-framework OpenGL -framework GLUT
 
 vpath %.cpp src/
 vpath %.o obj/
