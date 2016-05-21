@@ -39,7 +39,7 @@ Chip8::Chip8()
 
 void Chip8::initialize()
 {
-    pc     = 0x200;  // Program counter starts at 0x200
+    PC     = 0x200;  // Program counter starts at 0x200
     opcode = 0;      // Reset current opcode
     I      = 0;      // Reset index register
     sp     = 0;      // Reset stack pointer
@@ -77,7 +77,7 @@ void Chip8::initialize()
 void Chip8::emulateCycle()
 {
 
-    opcode = memory[pc] << 8 | memory[pc + 1];
+    opcode = memory[PC] << 8 | memory[PC + 1];
 
     // & pour ne récupérer que les 4 premiers bits
     switch(opcode & 0xF000)
@@ -90,13 +90,13 @@ void Chip8::emulateCycle()
                     for(int i = 0; i < 2048; ++i)
                         gfx[i] = 0x0;
                     drawFlag = true;
-                    pc += 2;
+                    PC += 2;
                     break;
 
                 case 0x000E: // 0x00EE: Returns from subroutine
                     --sp;			// 16 levels of stack, decrease stack pointer to prevent overwrite
-                    pc = stack[sp];	// Put the stored return address from the stack back into the program counter
-                    pc += 2;		// Don't forget to increase the program counter!
+                    PC = stack[sp];	// Put the stored return address from the stack back into the program counter
+                    PC += 2;		// Don't forget to increase the program counter!
                     break;
 
                 default:
