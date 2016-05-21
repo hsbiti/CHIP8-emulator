@@ -76,7 +76,6 @@ void Chip8::initialize()
 
 void Chip8::emulateCycle()
 {
-
     opcode = memory[PC] << 8 | memory[PC + 1];
 
     // & pour ne récupérer que les 4 premiers bits
@@ -86,17 +85,17 @@ void Chip8::emulateCycle()
         case 0x0000: // Calls RCA 1802 program at address NNN. Not necessary for most ROMs.
             switch(opcode & 0x000F)
             {
-                case 0x0000: // 0x00E0: Clears the screen
+                case 0x0000: // 0x00E0: Vide l'écran
                     for(int i = 0; i < 2048; ++i)
                         gfx[i] = 0x0;
                     drawFlag = true;
                     PC += 2;
                     break;
 
-                case 0x000E: // 0x00EE: Returns from subroutine
-                    --sp;			// 16 levels of stack, decrease stack pointer to prevent overwrite
-                    PC = stack[sp];	// Put the stored return address from the stack back into the program counter
-                    PC += 2;		// Don't forget to increase the program counter!
+                case 0x000E: // 0x00EE: Retour de subroutine
+                    --sp;			// 16 niveaux du stack, décrémente sp pour éviter un overwrite
+                    PC = stack[sp];	// Adresse enregistrée dans PC
+                    PC += 2;
                     break;
 
                 default:
@@ -105,23 +104,34 @@ void Chip8::emulateCycle()
             break;
 
         case 0x1000: // Jump à l'adresse NNN de 0xNNN
-
+            PC = opcode & 0x0FFF;
             break;
 
         case 0x2000: // Appel subroutine à NNN.
-
+            stack[sp] = PC;			// Enregister l'adresse courante dans la pile
+            ++sp;					// incrémenter sp
+            PC = opcode & 0x0FFF;	// Change l'adresse dans PC vers NNN
             break;
 
         case 0x3000: // Passe la prochaine instruction si VX == NN.
-
+            if(V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
+                PC += 4;
+            else
+                PC += 2;
             break;
 
         case 0x4000: // Passe la prochaine instruction si VX != NN.
-
+            if(V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
+                PC += 4;
+            else
+                PC += 2;
             break;
 
         case 0x5000: // 0x5XY0: Passe la prochaine instruction si if VX == VY.
-
+            if(V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4])
+                PC += 4;
+            else
+                PC += 2;
             break;
 
         case 0x6000: // Change la valeur de VX en NN.
