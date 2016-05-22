@@ -225,6 +225,26 @@ void Chip8::emulateCycle()
             break;
 
         case 0xD000: // Pour le dessin
+            V[0xF] = 0;
+            unsigned short pixel;
+
+            for (int y = 0; y < (opcode & 0x000F); y++)
+            {
+                pixel = memory[I + y];
+                for(int x = 0; x < 8; x++)
+                {
+                    if((pixel & (0x80 >> x)) != 0)
+                    {
+                        if(gfx[(V[(opcode & 0x0F00) >> 8] + x + ((V[(opcode & 0x00F0) >> 4] + y) * 64))] == 1)
+                            V[0xF] = 1;
+
+                        gfx[V[(opcode & 0x0F00) >> 8] + x + ((V[(opcode & 0x00F0) >> 4] + y) * 64)] ^= 1;
+                    }
+                }
+            }
+
+            drawFlag = true;
+            PC += 2;
 
             break;
 
@@ -252,7 +272,80 @@ void Chip8::emulateCycle()
             break;
 
         case 0xF000: // Timers et son
+            switch(opcode & 0x00FF)
+            {
+                case 0x0007: // FX07
+                    V[(opcode & 0x0F00) >> 8] = delay_timer;
+                    PC += 2;
+                    break;
 
+                case 0x000A: // FX0A
+                {
+                    bool keyPress = false;
+
+                    for(int i = 0; i < 16; ++i)
+                    {
+                        if(key[i] != 0)
+                        {
+                            V[(opcode & 0x0F00) >> 8] = i;
+                            keyPress = true;
+                        }
+                    }
+
+                    if(!keyPress)
+                        return;
+
+                    PC += 2;
+                }
+
+                case 0x0015: // FX15
+                    delay_timer = V[(opcode & 0x0F00) >> 8];
+                    PC += 2;
+                    break;
+
+                case 0x0018: // FX18
+                    sound_timer = V[(opcode & 0x0F00) >> 8];
+                    PC += 2;
+                    break;
+
+                case 0x001E: // FX1E
+                    V[0xF] = (I + V[(opcode & 0x0F00) >> 8] > 0xFFF) ? 1 : 0;
+                    I += V[(opcode & 0x0F00) >> 8];
+                    PC += 2;
+                    break;
+
+                case 0x0029: // FX29
+                    I = V[(opcode & 0x0F00) >> 8] * 0x5;
+                    PC += 2;
+                    break;
+
+                case 0x0033: // FX33
+                    memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
+                    memory[I+1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
+                    memory[I+2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+                    PC += 2;
+                    break;
+
+                case 0x0055: // FX55
+                    for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i)
+                        memory[I + i] = V[i];
+
+                    I += ((opcode & 0x0F00) >> 8) + 1;
+                    PC += 2;
+                    break;
+
+                case 0x0065: // FX65
+                    for (int i = 0; i <= ((opcode & 0x0F00) >> 8); ++i)
+                        V[i] = memory[I + i];
+
+                    I += ((opcode & 0x0F00) >> 8) + 1;
+                    PC += 2;
+                    break;
+
+                default:
+                    printf ("Unknown opcode [0xF000]: 0x%X\n", opcode);
+
+            }
             break;
 
         default:
