@@ -3,11 +3,13 @@
 //
 
 #include "Chip8.h"
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 
-
+using namespace std;
 
 unsigned char chip8_fontset[80] =
         {
@@ -99,7 +101,7 @@ void Chip8::emulateCycle()
                     break;
 
                 default:
-                    printf ("Unknown opcode [0x0000]: 0x%X\n", opcode);
+                    cerr << "Unkown opcode [0x0000]:0x" << hex << opcode << endl;
             }
             break;
 
@@ -197,7 +199,7 @@ void Chip8::emulateCycle()
                     PC += 2;
                     break;
                 default:
-                    printf ("Unknown opcode [0xE000]: 0x%X\n", opcode);
+                    cerr << "Unkown opcode [0xE000]:0x" << hex << opcode << endl;
                     break;
             }
 
@@ -266,14 +268,13 @@ void Chip8::emulateCycle()
                     break;
 
                 default:
-                    printf ("Unknown opcode [0xE000]: 0x%X\n", opcode);
+                    cerr << "Unkown opcode [0xE000]:0x" << hex << opcode << endl;
                     break;
             }
             break;
 
         case 0xF000: // Timers et son
-            switch(opcode & 0x00FF)
-            {
+            switch(opcode & 0x00FF) {
                 case 0x0007: // FX07
                     V[(opcode & 0x0F00) >> 8] = delay_timer;
                     PC += 2;
@@ -283,16 +284,14 @@ void Chip8::emulateCycle()
                 {
                     bool keyPress = false;
 
-                    for(int i = 0; i < 16; ++i)
-                    {
-                        if(key[i] != 0)
-                        {
+                    for (int i = 0; i < 16; ++i) {
+                        if (key[i] != 0) {
                             V[(opcode & 0x0F00) >> 8] = i;
                             keyPress = true;
                         }
                     }
 
-                    if(!keyPress)
+                    if (!keyPress)
                         return;
 
                     PC += 2;
@@ -321,8 +320,8 @@ void Chip8::emulateCycle()
 
                 case 0x0033: // FX33
                     memory[I] = V[(opcode & 0x0F00) >> 8] / 100;
-                    memory[I+1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
-                    memory[I+2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
+                    memory[I + 1] = (V[(opcode & 0x0F00) >> 8] / 10) % 10;
+                    memory[I + 2] = (V[(opcode & 0x0F00) >> 8] % 100) % 10;
                     PC += 2;
                     break;
 
@@ -343,15 +342,81 @@ void Chip8::emulateCycle()
                     break;
 
                 default:
-                    printf ("Unknown opcode [0xF000]: 0x%X\n", opcode);
-
+                    cerr << "Unkown opcode [0xF000]:0x" << hex << opcode << endl;
             }
             break;
 
         default:
-            printf ("Unknown opcode: 0x%X\n", opcode);
+            cerr << "Unkown opcode: 0x" << hex << opcode << endl;
             break;
 
     }
 
+    if(delay_timer > 0)
+        delay_timer--;
+
+    if(sound_timer > 0)
+        sound_timer--;
+
 }
+
+
+
+
+bool Chip8::loadApplication(const char * filename)
+{
+    initialize();
+    FILE * file = NULL;
+    if (!(file = fopen(filename, "rb")))
+    {
+        cerr << "Can't open file " << filename;
+        return false;
+    }
+
+    fseek(file , 0 , SEEK_END);
+    long size = ftell(file);
+    errno = 0;
+    rewind(file);
+    if (errno != 0)
+    {
+        perror("rewind: ");
+        return false;
+    }
+
+    cout << "File size " << size;
+
+    char * buffer = (char*)malloc(size);
+    if (!buffer)
+    {
+        cerr << "Memory allocation failed " << endl;
+        return false;
+    }
+
+    size_t result = fread (buffer, 1, size, file);
+    if (result != size)
+    {
+        cerr << "Reading error" << endl;
+        return false;
+    }
+
+    if((4096-512) > size)
+    {
+        for(int i = 0; i < size; ++i)
+            memory[i + 512] = buffer[i];
+    }
+    else
+        cerr << "Error: Rom too big for memory" << endl;
+
+    fclose(file);
+    free(buffer);
+
+    return true;
+
+
+
+}
+
+
+
+
+
