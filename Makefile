@@ -16,7 +16,7 @@ vpath %.h include/
 
 
 main: main.o Chip8.o |bin
-	$(CC) $(CFLAGS) -o main $(OPATH)main.o $(GL)
+	$(CC) $(CFLAGS) -o main $(OPATH)main.o $(OPATH)Chip8.o $(GL)
 	mv main bin/
 
 main.o: main.cpp Chip8.cpp Chip8.h

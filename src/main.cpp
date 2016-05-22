@@ -6,11 +6,12 @@
 #include <unistd.h>
 #include "Chip8.h"
 
+using namespace std;
 
 #define WIDTH 32
 #define HEIGHT 64
 
-//Chip8 myChip8;
+Chip8 myChip8;
 
 GLvoid InitGL()
 {
@@ -71,6 +72,18 @@ GLvoid ReSizeGLScene(int width, int height)
 
 int main (int argc, char* argv[])
 {
+
+    if(argc < 2)
+    {
+        cerr << "Use: " << argv[0] << " rom" << endl;
+        return 1;
+    }
+
+
+
+
+
+
     glutInit(&argc, argv);
     glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize (WIDTH, HEIGHT);
